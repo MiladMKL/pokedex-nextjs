@@ -12,7 +12,7 @@ const Layout = ({ title, children }) => {
         <link rel="icon" href="/pokeball.png" />
       </Head>
       <Navbar />
-      <div className="bg-gray-300 min-h-screen">{children}</div>
+      <div className="bg-zinc-200 min-h-screen">{children}</div>
     </div>
   );
 };

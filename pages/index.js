@@ -3,147 +3,81 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function Home({ pokeData, styles }) {
-  const [searchResults, setSearchResults] = useState(pokeData);
-  const [pokeArray, setPokeArray] = useState(searchResults.slice(0, 20));
+  const [searchResults, setSearchResults] = useState([]);
   const [pageNumber, setPageNumber] = useState(0);
-  const [input, setInput] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [hasMore, setHasMore] = useState(true);
 
-  /* ---------------------------- useEffects */
+  /* useEffects
+  -------------------------------------------------------- */
   useEffect(() => {
-    setPokeArray(searchResults.slice(pageNumber * 20, pageNumber * 20 + 20));
-  }, [pageNumber, searchResults]);
+    fetchPokemons(pageNumber);
+  }, [pageNumber]);
 
-  useEffect(() => {
-    if (input.length === 0 && filter === "All") {
-      setSearchResults(pokeData);
-    }
+  const fetchPokemons = async (page) => {
+    const response = await fetch(
+      `https://pokeapi.co/api/v2/pokemon?limit=20&offset=${page * 20}`
+    );
+    const { results } = await response.json();
+    const hasMoreResults = (page + 1) * 20 < 898;
+    setHasMore(hasMoreResults);
 
-    if (input.length !== 0 && filter === "All") {
-      setSearchResults((c) =>
-        pokeData.filter((pokeman) => {
-          return pokeman.name.english
-            .toLowerCase()
-            .includes(input.toLowerCase());
-        })
-      );
-    }
+    const pokemonsWithoutMoves = await Promise.all(
+      results.map(async (pokemon) => {
+        const pokemonData = await (await fetch(pokemon.url)).json();
+        const { moves, game_indices, ...dataWithoutMoves } = pokemonData;
+        return dataWithoutMoves;
+      })
+    );
 
-    if (input.length === 0 && filter !== "All") {
-      setSearchResults(() =>
-        pokeData.filter((pokeman) => {
-          return pokeman.type.includes(filter);
-        })
-      );
-    }
+    setSearchResults(pokemonsWithoutMoves);
+  };
 
-    if (input.length !== 0 && filter !== "All") {
-      setSearchResults(() =>
-        pokeData.filter((pokeman) => {
-          return (
-            pokeman.type.includes(filter) &&
-            pokeman.name.english.toLowerCase().includes(input.toLowerCase())
-          );
-        })
-      );
-    }
-  }, [input, filter]);
-
-  /* ---------------------------- Handlers */
+  /* handlers
+  -------------------------------------------------------- */
   const handlePrevious = () => {
-    setPageNumber((currentPage) => currentPage - 1);
+    if (pageNumber > 0) {
+      setPageNumber((currentPage) => currentPage - 1);
+    }
   };
 
   const handleNext = () => {
-    setPageNumber((currentPage) => currentPage + 1);
+    if (hasMore) {
+      setPageNumber((currentPage) => currentPage + 1);
+    }
   };
 
-  const handleInputChange = (event) => {
-    setInput(event.target.value);
-  };
-
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value);
-  };
-
-  /* ---------------------------- Render */
+  /* Render
+  -------------------------------------------------------- */
   return (
-    <Layout title="WebPokedex">
+    <Layout title="Pokedex">
       <div className="flex flex-col justify-center items-center">
-        <div className="flex justify-center pt-12 w-[80%]">
-          <input
-            type="text"
-            placeholder="Search"
-            className="mx-8 w-full sm:3/4 bg-gray-100 px-6 py-2 rounded-lg"
-            onChange={handleInputChange}
-            value={input}
-          />
-        </div>
-
-        <div className="flex px-8 sm:px-16 py-4 items-center">
-          <label
-            htmlFor="types"
-            className="block mr-6 font-semibold text-gray-900 text-base"
-          >
-            Types:
-          </label>
-          <select
-            name="types"
-            id="types"
-            // defaultValue={"All"}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1 sm:p-2.5"
-            onChange={handleFilterChange}
-            value={filter}
-          >
-            <option value="All">All</option>
-            <option value="Normal">Normal</option>
-            <option value="Fire">Fire</option>
-            <option value="Water">Water</option>
-            <option value="Electric">Electric</option>
-            <option value="Grass">Grass</option>
-            <option value="Ice">Ice</option>
-            <option value="Fighting">Fighting</option>
-            <option value="Poison">Poison</option>
-            <option value="Ground">Ground</option>
-            <option value="Flying">Flying</option>
-            <option value="Psychic">Psychic</option>
-            <option value="Bug">Bug</option>
-            <option value="Rock">Rock</option>
-            <option value="Ghost">Ghost</option>
-            <option value="Dragon">Dragon</option>
-            <option value="Dark">Dark</option>
-            <option value="Steel">Steel</option>
-            <option value="Fairy">Fairy</option>
-          </select>
-        </div>
         <div className="flex flex-wrap justify-center mx-auto">
-          {/* <div className="flex flex-wrap justify-evenly border-2 m-14 border-violet-900 rounded-xl py-4"> */}
-          {pokeArray.map((pokeman, index) => {
+          {searchResults.map((pokeman, index) => {
             return (
-              <div key={pokeman.name.english} className="p-4">
+              <div key={pokeman.name} className="p-4">
                 <Link href={`/pokemons/${pokeman.id}`}>
                   <div className="bg-gray-100 py-8 px-6 rounded-lg">
                     <img
-                      src={pokeman.image.hires}
+                      src={pokeman.sprites.other.home.front_default}
                       className="h-[152px] w-[152px] sm:w-[200px] sm:h-[200px] mb-4"
                     />
                     <div className="text-center">
-                      {pokeman.type.map((type, index) => {
+                      {pokeman.types.map((type, index) => {
                         return (
                           <span
                             key={type + index}
                             className="text-white text-xs font-medium mr-2 px-4 py-1.5 rounded-full"
                             style={{
-                              backgroundColor: styles[type.toLowerCase()],
+                              backgroundColor: styles[type.type.name],
                             }}
                           >
-                            {type}
+                            {type.type.name}
                           </span>
                         );
                       })}
                     </div>
                     <div className="text-center mt-4">
-                      <p className="text-2xl">{pokeman.name.english}</p>
+                      <p className="text-2xl">{pokeman.name}</p>
                       <p className="font-bold text-2xl">{`#${pokeman.id
                         .toString()
                         .padStart(3, "0")}`}</p>
@@ -159,9 +93,8 @@ export default function Home({ pokeData, styles }) {
       <div class="flex flex-col items-center">
         <div class="inline-flex m-8 xs:mt-0">
           <button
-            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="inline-flex items-center px-4 py-2 text-sm md:text-lg font-medium text-white bg-gray-800 rounded-l hover:bg-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
             onClick={handlePrevious}
-            disabled={pageNumber === 0 ? true : false}
           >
             <svg
               aria-hidden="true"
@@ -176,12 +109,11 @@ export default function Home({ pokeData, styles }) {
                 clip-rule="evenodd"
               ></path>
             </svg>
-            Prev
+            Previous
           </button>
           <button
-            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 border-0 border-l border-gray-600 rounded-r hover:bg-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="inline-flex items-center px-4 py-2 text-sm md:text-lg font-medium text-white bg-gray-800 border-0 border-l border-gray-600 rounded-r hover:bg-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
             onClick={handleNext}
-            disabled={searchResults.length / 20 - pageNumber < 1 ? true : false}
           >
             Next
             <svg
@@ -200,35 +132,14 @@ export default function Home({ pokeData, styles }) {
           </button>
         </div>
       </div>
-
-      {/* <div className="container mx-auto flex flex-wrap justify-between p-4">
-        <button
-          className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded disabled:bg-gray-700"
-          onClick={handlePrevious}
-          disabled={pageNumber === 0 ? true : false}
-        >
-          Previous
-        </button>
-        <button
-          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded disabled:bg-gray-700"
-          onClick={handleNext}
-          disabled={searchResults.length / 20 - pageNumber < 1 ? true : false}
-        >
-          Next
-        </button>
-      </div> */}
-      {/* </div> */}
     </Layout>
   );
 }
 
-export async function getStaticProps({}) {
+export async function getStaticProps() {
   try {
-    const response = await fetch("https://api.pikaserve.xyz/pokemon/all");
-    const data = await response.json();
     return {
       props: {
-        pokeData: data,
         styles: {
           normal: "#A8A77A",
           fire: "#EE8130",

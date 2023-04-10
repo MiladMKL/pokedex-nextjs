@@ -1,18 +1,17 @@
 import Link from "next/link";
 import React from "react";
+import { FaGithubAlt } from "react-icons/fa";
 
 const Navbar = () => {
   return (
-    <div className="h-18 p-2 flex items-center justify-between bg-poke-red">
+    <div className="min-h-8 pt-8 px-4 pb-1 flex items-center justify-between bg-zinc-200">
+      <p></p>
       <Link href="/">
-        <img src="pokeball.png" alt="" width={50} />
+        <img src="/pokemon_logo.png" alt="logo" width={200} />
       </Link>
-      <Link href="/">
-        <img src="/pokemon_logo.png" alt="logo" width={180} />
-      </Link>
-      <Link href="/">
-        <img src="/github-mark.png" alt="logo" width={50} />
-      </Link>
+      <a href="https://github.com/MiladMKL/pokedex-nextjs">
+        <FaGithubAlt size={40} />
+      </a>
     </div>
   );
 };
