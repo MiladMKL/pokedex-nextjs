@@ -9,7 +9,6 @@ const Details = ({ pokeman, styles }) => {
     return acc;
   }, {});
 
-  console.log(pokeman);
   return (
     <Layout title={pokeman.name}>
       <div className="px-8 py-2">
@@ -61,7 +60,7 @@ const Details = ({ pokeman, styles }) => {
               let statPercentFactor = 0;
               let statColor = "";
 
-              console.log("STAT:", stat);
+              // console.log("STAT:", stat);
 
               switch (stat) {
                 case "hp":
@@ -125,7 +124,7 @@ export async function getServerSideProps({ query }) {
     const data = await response.json();
     const { moves, game_indices, ...dataWithoutMoves } = data;
 
-    console.log(dataWithoutMoves);
+    // console.log(dataWithoutMoves);
 
     return {
       props: {
