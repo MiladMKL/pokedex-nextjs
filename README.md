@@ -1,4 +1,4 @@
-# Netflix Clone
+# Pokemon Pokedex
 
 A Pokedex App build with Next.js and Tailwind CSS.
 
