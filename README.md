@@ -10,7 +10,7 @@ By building this project, I was able to practice implementing dynamic data and e
 
 ## Live Demo
 
-**[Link](https://streamingwebsite.miladmiyakheel.com)**
+**[Link](http://chinpokedex.miladmiyakheel.com)**
 
 ## Screenshots
 
